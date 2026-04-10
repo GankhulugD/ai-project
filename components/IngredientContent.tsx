@@ -13,8 +13,8 @@ export const IngredientContent = () => {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ImageIcon className="w-7 h-7 text-blue-900" />
-            <h2 className="text-2xl font-bold">Image analysis</h2>
+            <img src="/Vector.svg" alt="v" />
+            <h2 className="text-2xl font-bold">Ingredient recognition</h2>
           </div>
           <Button
             variant="outline"
@@ -26,7 +26,7 @@ export const IngredientContent = () => {
         </div>
 
         <p className="text-slate-600 text-sm">
-          Upload a food photo, and AI will detect the ingredients.
+          Describe the food, and AI will detect the ingredients.
         </p>
 
         <div className="flex items-center gap-4 w-full">
@@ -49,13 +49,13 @@ export const IngredientContent = () => {
       <section className="space-y-4 pt-4">
         <div className="flex items-center gap-3 border-t border-slate-100 pt-8">
           <FileText className="w-7 h-7 text-blue-900" />
-          <h3 className="text-xl font-bold">Here is the summary</h3>
+          <h3 className="text-xl font-bold">Identified Ingredients</h3>
         </div>
 
         <Card className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-none">
           <CardHeader className="pb-2">
             <CardTitle className="text-[15px] font-semibold">
-              Here's a breakdown of the items visible in the image:
+              First, enter your text to recognize an ingredients.
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-[14px] leading-relaxed text-slate-600">
