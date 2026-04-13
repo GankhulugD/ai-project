@@ -1,10 +1,54 @@
-import { ImageIcon, RotateCw, FileText } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { RotateCw, ImageIcon, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TabsContent } from "@/components/ui/tabs";
 
 export const ImageCreatorContent = () => {
+  const [prompt, setPrompt] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    setError(null);
+    setImage(null);
+
+    try {
+      const res = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setImage(data.image);
+    } catch (err: any) {
+      setError(err.message ?? "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setPrompt("");
+    setImage(null);
+    setError(null);
+  };
+
+  const handleDownload = () => {
+    if (!image) return;
+    const a = document.createElement("a");
+    a.href = image;
+    a.download = "generated-food.jpg";
+    a.click();
+  };
+
   return (
     <TabsContent
       value="image-creator"
@@ -19,6 +63,7 @@ export const ImageCreatorContent = () => {
           <Button
             variant="outline"
             size="icon"
+            onClick={handleReset}
             className="rounded-full bg-slate-100 border-slate-200"
           >
             <RotateCw className="w-5 h-5 text-slate-600" />
@@ -29,50 +74,74 @@ export const ImageCreatorContent = () => {
           What food image do you want? Describe it briefly.
         </p>
 
-        <div className="flex items-center gap-4 w-full">
-          <div className="relative flex-1">
-            <Input
-              id="text"
-              type="text"
-              className="border-slate-300 rounded-lg text-sm pl-3 pr-20 h-10"
-            />
-          </div>
-        </div>
+        <Input
+          type="text"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+          placeholder="e.g. A steaming bowl of tonkotsu ramen..."
+          className="border-slate-300 rounded-lg text-sm h-10"
+          disabled={loading}
+        />
 
         <div className="flex justify-end pt-2">
-          <Button className="bg-[#a1a1aa] hover:bg-[#71717a] text-white rounded-lg px-6 h-10 transition-colors">
-            Generate
+          <Button
+            onClick={handleGenerate}
+            disabled={loading || !prompt.trim()}
+            className="bg-[#a1a1aa] hover:bg-[#71717a] text-white rounded-lg px-6 h-10 transition-colors disabled:opacity-50"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+              </span>
+            ) : (
+              "Generate"
+            )}
           </Button>
         </div>
       </section>
 
       <section className="space-y-4 pt-4">
-        <div className="flex items-center gap-3 border-t border-slate-100 pt-8">
-          <FileText className="w-7 h-7 text-blue-900" />
-          <h3 className="text-xl font-bold">Result</h3>
+        <div className="flex items-center justify-between border-t border-slate-100 pt-8">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="w-7 h-7 text-black-900" />
+            <h3 className="text-xl font-bold">Result</h3>
+          </div>
+          {image && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="flex items-center gap-1 text-slate-600 rounded-lg"
+            >
+              <Download className="w-4 h-4" /> Save
+            </Button>
+          )}
         </div>
 
         <Card className="border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-none">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[15px] font-semibold">
-              First, enter your text to generate an image.
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-[14px] leading-relaxed text-slate-600">
-            {/* <p>
-                      <b>Vegetables:</b> Red cabbage, Broccolini, Bok choy.
-                    </p>
-                    <p>
-                      <b>Proteins:</b> Salmon fillet, Eggs.
-                    </p>
-                    <p>
-                      <b>Fruits:</b> Avocado, Apples.
-                    </p>
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      <p className="text-slate-400 italic text-[14px] text-center">
-                        First, enter your image to recognize an ingredients.
-                      </p>
-                    </div> */}
+          <CardContent className="p-5">
+            {!image && !error && !loading && (
+              <p className="text-slate-400 italic text-center text-[14px] py-2">
+                Enter a description to generate a food image.
+              </p>
+            )}
+            {loading && (
+              <div className="flex flex-col items-center justify-center gap-3 py-8 text-slate-400">
+                <Loader2 className="w-8 h-8 animate-spin" />
+                <span className="text-sm">
+                  FLUX.1 is generating your image...
+                </span>
+              </div>
+            )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {image && (
+              <img
+                src={image}
+                alt="Generated food"
+                className="w-full rounded-xl object-cover"
+              />
+            )}
           </CardContent>
         </Card>
       </section>
